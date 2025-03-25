@@ -21,7 +21,7 @@
             return $row;
 		}
 		
-		protected function findMany($query, $args = [], $mode = PDO::FETCH_DEFAULT)
+		protected function findMany($query, $args = [], $mode = 0)
 		{
 			$res = self::$pdo->prepare($query);
             $res->execute($args);
