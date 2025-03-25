@@ -1,5 +1,8 @@
 <?php
 namespace Parser;
+/**
+ * Канал для вывода в текстовой программе
+ */
 class Channel {
     private $xmlChannelId = '';
     private $id = 0;

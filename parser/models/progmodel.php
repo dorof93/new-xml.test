@@ -3,6 +3,7 @@
 	use PDO;
     use DateTimeImmutable;
     use DateTimeZone;
+    use SimpleXMLElement;
 	use \Parser\Model;
     use \Parser\Models\EpgChannelModel;
 	
@@ -10,7 +11,12 @@
 	{
         const TABLE_NAME = 'progs';
 
-        public function isExistGenId() {
+        /**
+         * Проверяет, была ли программа уже занесена в БД в текущей сессии пользователя
+         * 
+         * @return bool
+         */
+        public function isExistGenId(): bool {
 
             $genId = $_SESSION['id'];
 			$count = $this->findColumn(
@@ -21,7 +27,14 @@
 
         }
 
-        public function getByEpgChnId($epgChnId) {
+        /**
+         * Получает программу для ЕПГ-канала
+         * 
+         * @param string $epgChnId ИД ЕПГ-канала в ХМЛ-файле
+         * 
+         * @return array
+         */
+        public function getByEpgChnId( string $epgChnId ): array {
 
             $genId = $_SESSION['id'];
 			return $this->findMany(
@@ -32,7 +45,15 @@
         }
 
 
-        public function insertFromXml ($xml, $sourceId) {
+        /**
+         * Читает ХМЛ-файл и записывает программу в БД
+         * 
+         * @param SimpleXMLElement $xml ХМЛ-объект
+         * @param int $sourceId ИД источника XML-файла
+         * 
+         * @return void
+         */
+        public function insertFromXml ( SimpleXMLElement $xml, int $sourceId ): void {
             $progs = $xml->programme;
             $pdo = parent::$pdo;
             $genId = $_SESSION['id'];
@@ -72,14 +93,29 @@
             }
         }
         
-        private function getTzOffsetTime ($strTime, $tz) {
+        /**
+         * Переводит время в соответствующий часовой пояс
+         * 
+         * @param string $strTime строка с датой и временем
+         * @param string $tz обозначение часового пояса
+         * 
+         * @return string время для часового пояса
+         */
+        private function getTzOffsetTime ( string $strTime, string $tz ): string {
             $d = new DateTimeImmutable($strTime);
             $tzo = new DateTimeZone($tz);
             $local = $d->setTimezone($tzo);
             return $local->format('Y-m-d H:i');
         }
     
-        private function getDateOffsetStartHour ($strTime) {
+        /**
+         * Устанавливает, с какого часа начинать сутки
+         * 
+         * @param string $strTime строка с датой и временем
+         * 
+         * @return string дата
+         */
+        private function getDateOffsetStartHour ( string $strTime ): string {
             $hourSec = START_HOUR * 60 * 60;
             $date = date('Y-m-d', strtotime($strTime) - $hourSec);
             return $date;

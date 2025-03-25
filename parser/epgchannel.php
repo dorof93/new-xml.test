@@ -1,5 +1,8 @@
 <?php
 namespace Parser;
+/**
+ * Канал в ХМЛ-файле
+ */
 class EpgChannel {
     private $id = 0;
     private $source_id = '';

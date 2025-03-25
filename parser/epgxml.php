@@ -1,14 +1,23 @@
 <?php
 namespace Parser;
 use PDO;
+use SimpleXMLElement;
 use \Parser\Models\ChannelModel;
 use \Parser\Models\EpgChannelModel;
 use \Parser\Models\SourceModel;
 use \Parser\Models\ProgModel;
 use \Parser\FS;
 
+/**
+ * Функции для работы с ХМЛ-файлами
+ */
 class EpgXml {
-    public function getNewChannels () {
+    /**
+     * Читает ХМЛ-файлы и получает каналы, которых еще нет в БД
+     * 
+     * @return array массив объектов класса Channel
+     */
+    public function getNewChannels (): array {
         $newChannels = [];
         $files = (new FS)->getLoadFilesInfo();
         foreach ($files as $file) {
@@ -51,7 +60,15 @@ class EpgXml {
         return $newChannels;
     }
 
-    public function processXml ($filePath, $startPos = 0) {
+    /**
+     * Читает ХМЛ-файл и формирует ХМЛ-объект
+     * 
+     * @param string $filePath путь к ХМЛ-файлу
+     * @param int $startPos с какой позиции (в байтах) начинать чтение
+     * 
+     * @return int позиция, на которой было закончено чтение (либо false, если достигнут конец файла)
+     */
+    public function processXml ( string $filePath, int $startPos = 0): int|false {
         $res = false;
         $startXml = '<?xml version="1.0" encoding="utf-8" ?><tv>';
         $endXml = '</tv>';
@@ -78,7 +95,14 @@ class EpgXml {
         return $res;
     }
 
-    public function getSourceUrl($filePath) {
+    /**
+     * Получает Url источника из ХМЛ-файла
+     * 
+     * @param string $filePath путь к ХМЛ-файлу
+     * 
+     * @return string Url источника
+     */
+    public function getSourceUrl( string $filePath ): string {
         $xml = file_get_contents($filePath, FALSE, NULL, 0, 1000);
         if ( $xml ) {
             preg_match('#generator-info-url="(.*?)"#', $xml, $matches);
@@ -88,12 +112,26 @@ class EpgXml {
         }
         return '';
     }
-    public function getSourceId($filePath) {
+    /**
+     * Получает ИД источника ХМЛ-файла в БД
+     * 
+     * @param string $filePath путь к ХМЛ-файлу
+     * 
+     * @return string
+     */
+    public function getSourceId( string $filePath): string {
         $url = $this->getSourceUrl($filePath);
         $id = (new SourceModel)->getSourceId($url);
         return $id;
     }
-    private function getDisplayNames($obj) {
+    /**
+     * Получает названия каналов из ХМЛ-файла
+     * 
+     * @param SimpleXMLElement $obj хмл-объект с названиями
+     * 
+     * @return string
+     */
+    private function getDisplayNames( SimpleXMLElement $obj ): string {
         $display_names_arr  = array();
         foreach ($obj as $display_name) {
             $display_names_arr[] = $display_name;

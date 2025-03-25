@@ -4,21 +4,44 @@ use \Parser\Models\ChannelModel;
 use \Parser\Models\EpgChannelModel;
 use \Parser\Models\ProgModel;
 use ZipArchive;
+/**
+ * Функции для работы с файловой системой
+ */
 class FS {
-    public function getDir () {
+    /**
+     * Получает путь к рабочей папке для текущей сессии пользователя
+     * 
+     * @return string
+     */
+    public function getDir(): string {
         $filesDir = $_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . FILES_DIR;
         if ( ! file_exists($filesDir) ) {
             mkdir($filesDir, 0755, true);
         }
         return $filesDir . DIRECTORY_SEPARATOR . $_SESSION['id'] . DIRECTORY_SEPARATOR;
     }
-    public function getCatsDir () {
+    /**
+     * Получает путь к папке для хранения программы по категориям каналов
+     * 
+     * @return string
+     */
+    public function getCatsDir(): string {
         return $this->getDir() . 'cats' . DIRECTORY_SEPARATOR;
     }
-    public function getChannelsDir () {
+    /**
+     * Получает путь к папке для хранения программы по каналам
+     * 
+     * @return string
+     */
+    public function getChannelsDir (): string {
         return $this->getDir() . 'channels' . DIRECTORY_SEPARATOR;
     }
-    public function getLoadFiles () {
+    /**
+     * Получает массив загруженных ХМЛ-файлов 
+     * 
+     * @return array
+     */
+    public function getLoadFiles(): array {
         $items = [];
         $dir = $this->getDir();
         if ( file_exists($dir) ) {
@@ -32,7 +55,12 @@ class FS {
         }
         return $items;
     }
-    public function getLoadFilesInfo () {
+    /**
+     * Получает массив загруженных ХМЛ-файлов с информацией о них
+     * 
+     * @return array
+     */
+    public function getLoadFilesInfo(): array {
         $items = [];
         $dir = $this->getDir();
         if ( file_exists($dir) ) {
@@ -51,7 +79,12 @@ class FS {
         }
         return $items;
     }
-    public function uploadFile()
+    /**
+     * Загружает ХМЛ-файл
+     * 
+     * @return bool
+     */
+    public function uploadFile(): bool
     {
         if ( ! empty($_FILES['xmlfile']['name']) ) {
             $uploaddir = $this->getDir();
@@ -78,7 +111,14 @@ class FS {
         }
         return false;
     }
-    public function delete($fileName) {
+    /**
+     * Удаляет ХМЛ-файл
+     * 
+     * @param string $fileName название файла
+     * 
+     * @return bool
+     */
+    public function delete( string $fileName ): bool {
         $dir = $this->getDir();
         if ( file_exists($dir . $fileName) ) {
             return unlink($dir . $fileName);
@@ -87,11 +127,19 @@ class FS {
     }
 
 
-    public function writePrograms($dir, $groupField) {
+    /**
+     * Читает программу из БД и записывает в текстовые файлы
+     * 
+     * @param string $dir папка для записи файлов
+     * @param string $groupField по какому полю из БД группировать
+     * 
+     * @return bool
+     */
+    public function writePrograms( string $dir, string $groupField ): bool {
         if ( ! file_exists($dir) ) {
             mkdir($dir, 0755, true);
         } else {
-            return; // сделать нормальную проверку, что программа уже сгенерирована
+            return false; // сделать нормальную проверку, что программа уже сгенерирована
         }
         $progChnId = 0;
         $progDate = 0;
@@ -126,9 +174,17 @@ class FS {
                 }
             }
         }
+        return true;
     }
 
-    public function createZip($dir) {
+    /**
+     * Архивирует папку в Zip
+     * 
+     * @param string $dir путь к папке
+     * 
+     * @return string
+     */
+    public function createZip( string $dir ): string {
         $zipPath = $dir . 'program.zip';
         if ( ! file_exists($zipPath) ) {
             $zip = new ZipArchive();
@@ -145,7 +201,14 @@ class FS {
         return $zipPath;
     }
 
-    public function loadZip($zipPath) {
+    /**
+     * Отдает зип-архив в браузер 
+     * 
+     * @param string $zipPath путь к зип-архиву
+     * 
+     * @return void
+     */
+    public function loadZip( string $zipPath ): void {
         if ( file_exists($zipPath) ) {
             $zipName = basename($zipPath);
             header('Content-Type: application/zip, application/octet-stream, application/x-zip-compressed, multipart/x-zip');
